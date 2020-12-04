@@ -13,10 +13,37 @@ interface IRequest {
 
 @injectable()
 class CreateProductService {
-  constructor(private productsRepository: IProductsRepository) {}
+  constructor(
+    @inject('ProductsRepository')
+    private productsRepository: IProductsRepository,
+  ) {}
 
   public async execute({ name, price, quantity }: IRequest): Promise<Product> {
-    // TODO
+    if (!name) {
+      throw new AppError('Name field is mandatory.');
+    }
+
+    if (!price) {
+      throw new AppError('Price field is mandatory.');
+    }
+
+    if (!quantity) {
+      throw new AppError('Quantity field is mandatory.');
+    }
+
+    const nameAlreadyExists = await this.productsRepository.findByName(name);
+
+    if (nameAlreadyExists) {
+      throw new AppError('Name already exists.');
+    }
+
+    const product = await this.productsRepository.create({
+      name,
+      price,
+      quantity,
+    });
+
+    return product;
   }
 }
 
